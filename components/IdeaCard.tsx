@@ -1,13 +1,20 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert, Platform } from 'react-native';
-import { Idea } from '@/types/idea';
-import { Feather } from '@expo/vector-icons';
-import Animated, { 
-  useSharedValue, 
-  useAnimatedStyle, 
+import React from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Alert,
+  Platform,
+} from "react-native";
+import { Idea } from "@/types/idea";
+import { Feather } from "@expo/vector-icons";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
   withSpring,
-  interpolateColor 
-} from 'react-native-reanimated';
+  interpolateColor,
+} from "react-native-reanimated";
 
 interface IdeaCardProps {
   idea: Idea;
@@ -16,7 +23,12 @@ interface IdeaCardProps {
   onToggleFavorite: (id: string) => void;
 }
 
-export function IdeaCard({ idea, onEdit, onDelete, onToggleFavorite }: IdeaCardProps) {
+export function IdeaCard({
+  idea,
+  onEdit,
+  onDelete,
+  onToggleFavorite,
+}: IdeaCardProps) {
   const scaleValue = useSharedValue(1);
   const favoriteScale = useSharedValue(1);
 
@@ -43,43 +55,42 @@ export function IdeaCard({ idea, onEdit, onDelete, onToggleFavorite }: IdeaCardP
     onToggleFavorite(idea.id);
   };
 
-const handleDelete = () => {
-  if (Platform.OS === 'web') {
-    if (window.confirm('Are you sure you want to delete this idea?')) {
-      onDelete(idea.id);
+  const handleDelete = () => {
+    if (Platform.OS === "web") {
+      if (window.confirm("Are you sure you want to delete this idea?")) {
+        onDelete(idea.id);
+      }
+    } else {
+      Alert.alert("Delete Idea", "Are you sure you want to delete this idea?", [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: () => onDelete(idea.id),
+        },
+      ]);
     }
-  } else {
-    Alert.alert(
-      'Delete Idea',
-      'Are you sure you want to delete this idea?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Delete', style: 'destructive', onPress: () => onDelete(idea.id) },
-      ]
-    );
-  }
-};
+  };
 
   const getTypeIcon = () => {
     switch (idea.type) {
-      case 'text':
+      case "text":
         return <Feather name="type" size={16} color="#6B7280" />;
-      case 'voice':
+      case "voice":
         return <Feather name="mic" size={16} color="#6B7280" />;
-      case 'image':
+      case "image":
         return <Feather name="image" size={16} color="#6B7280" />;
     }
   };
 
   const formatDate = (date: Date) => {
-    const now = new Date();
-    const diff = now.getTime() - date.getTime();
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-    
-    if (days === 0) return 'Today';
-    if (days === 1) return 'Yesterday';
-    if (days < 7) return `${days} days ago`;
-    return date.toLocaleDateString();
+    // const now = new Date();
+    // const diff = now.getTime() - date.getTime();
+    // const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    // if (days === 0) return "Today";
+    // if (days === 1) return "Yesterday";
+    // if (days < 7) return `${days} days ago`;
+    // return date.toLocaleDateString();
   };
 
   return (
@@ -100,25 +111,31 @@ const handleDelete = () => {
           </View>
           <View style={styles.actions}>
             <Animated.View style={favoriteAnimatedStyle}>
-              <TouchableOpacity onPress={handleFavorite} style={styles.actionButton}>
-                <Feather 
-                  name="heart" 
-                  size={20} 
-                  color={idea.isFavorite ? "#EF4444" : "#6B7280"} 
+              <TouchableOpacity
+                onPress={handleFavorite}
+                style={styles.actionButton}
+              >
+                <Feather
+                  name="heart"
+                  size={20}
+                  color={idea.isFavorite ? "#EF4444" : "#6B7280"}
                   fill={idea.isFavorite ? "#EF4444" : "none"}
                 />
               </TouchableOpacity>
             </Animated.View>
-            <TouchableOpacity onPress={handleDelete} style={styles.actionButton}>
+            <TouchableOpacity
+              onPress={handleDelete}
+              style={styles.actionButton}
+            >
               <Feather name="trash" size={20} color="#6B7280" />
             </TouchableOpacity>
           </View>
         </View>
-        
+
         <Text style={styles.content} numberOfLines={2}>
           {idea.content}
         </Text>
-        
+
         <View style={styles.footer}>
           <View style={styles.tags}>
             {idea.tags.slice(0, 3).map((tag, index) => (
@@ -130,7 +147,7 @@ const handleDelete = () => {
               <Text style={styles.moreText}>+{idea.tags.length - 3}</Text>
             )}
           </View>
-          <Text style={styles.date}>{formatDate(idea.createdAt)}</Text>
+          {/* <Text style={styles.date}>{formatDate(idea.createdAt)}</Text> */}
         </View>
       </TouchableOpacity>
     </Animated.View>
@@ -142,37 +159,37 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   card: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: "#FFFFFF",
     borderRadius: 16,
     padding: 16,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 3,
     borderWidth: 1,
-    borderColor: '#F3F4F6',
+    borderColor: "#F3F4F6",
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 8,
   },
   typeContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     flex: 1,
   },
   title: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#1F2937',
+    fontWeight: "600",
+    color: "#1F2937",
     marginLeft: 8,
     flex: 1,
   },
   actions: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 8,
   },
   actionButton: {
@@ -180,22 +197,22 @@ const styles = StyleSheet.create({
   },
   content: {
     fontSize: 14,
-    color: '#6B7280',
+    color: "#6B7280",
     lineHeight: 20,
     marginBottom: 12,
   },
   footer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   tags: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     flex: 1,
   },
   tag: {
-    backgroundColor: '#E0F2FE',
+    backgroundColor: "#E0F2FE",
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 8,
@@ -203,16 +220,16 @@ const styles = StyleSheet.create({
   },
   tagText: {
     fontSize: 12,
-    color: '#0891B2',
-    fontWeight: '500',
+    color: "#0891B2",
+    fontWeight: "500",
   },
   moreText: {
     fontSize: 12,
-    color: '#6B7280',
+    color: "#6B7280",
     marginLeft: 4,
   },
   date: {
     fontSize: 12,
-    color: '#9CA3AF',
+    color: "#9CA3AF",
   },
 });

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo } from "react";
 import {
   View,
   Text,
@@ -7,50 +7,60 @@ import {
   TextInput,
   TouchableOpacity,
   Alert,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Feather } from '@expo/vector-icons';
-import { useIdeas } from '@/hooks/useIdeas';
-import { IdeaCard } from '@/components/IdeaCard';
-import { CaptureModal } from '@/components/CaptureModal';
-import { Idea, IdeaFilter } from '@/types/idea';
-import { useFocusEffect } from '@react-navigation/native';
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { Feather } from "@expo/vector-icons";
+import { useIdeas } from "@/hooks/useIdeas";
+import { IdeaCard } from "@/components/IdeaCard";
+import { CaptureModal } from "@/components/CaptureModal";
+import { Idea, IdeaFilter } from "@/types/idea";
+import { useFocusEffect } from "@react-navigation/native";
 
 export default function IdeasScreen() {
-  const { ideas, loading, updateIdea, deleteIdea, toggleFavorite, refreshIdeas } = useIdeas();
-  const [searchQuery, setSearchQuery] = useState('');
+  const {
+    ideas,
+    loading,
+    updateIdea,
+    deleteIdea,
+    toggleFavorite,
+    refreshIdeas,
+  } = useIdeas();
+  const [searchQuery, setSearchQuery] = useState("");
   const [selectedFilter, setSelectedFilter] = useState<IdeaFilter>({});
   const [editingIdea, setEditingIdea] = useState<Idea | undefined>();
   const [showEditModal, setShowEditModal] = useState(false);
 
-    useFocusEffect(
+  useFocusEffect(
     React.useCallback(() => {
       refreshIdeas();
     }, [])
   );
-
 
   const filteredIdeas = useMemo(() => {
     let filtered = ideas;
 
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(idea =>
-        idea.title.toLowerCase().includes(query) ||
-        idea.content.toLowerCase().includes(query) ||
-        idea.tags.some(tag => tag.toLowerCase().includes(query))
+      filtered = filtered.filter(
+        (idea) =>
+          idea.title.toLowerCase().includes(query) ||
+          idea.content.toLowerCase().includes(query) ||
+          idea.tags.some((tag) => tag.toLowerCase().includes(query))
       );
     }
 
     if (selectedFilter.type) {
-      filtered = filtered.filter(idea => idea.type === selectedFilter.type);
+      filtered = filtered.filter((idea) => idea.type === selectedFilter.type);
     }
 
     if (selectedFilter.favorites) {
-      filtered = filtered.filter(idea => idea.isFavorite);
+      filtered = filtered.filter((idea) => idea.isFavorite);
     }
 
-    return filtered.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    return filtered.sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
   }, [ideas, searchQuery, selectedFilter]);
 
   const handleEditIdea = (idea: Idea) => {
@@ -58,9 +68,12 @@ export default function IdeasScreen() {
     setShowEditModal(true);
   };
 
-  const handleUpdateIdea = async (ideaData: Omit<Idea, 'id' | 'createdAt' | 'updatedAt'>) => {
+  const handleUpdateIdea = async (
+    ideaData: Omit<Idea, "id" | "createdAt" | "updatedAt">
+  ) => {
     if (editingIdea) {
       await updateIdea(editingIdea.id, ideaData);
+      await refreshIdeas();
       setEditingIdea(undefined);
       setShowEditModal(false);
     }
@@ -68,11 +81,12 @@ export default function IdeasScreen() {
 
   const handleDeleteIdea = async (id: string) => {
     await deleteIdea(id);
+    await refreshIdeas();
   };
 
   const clearFilters = () => {
     setSelectedFilter({});
-    setSearchQuery('');
+    setSearchQuery("");
   };
 
   const getActiveFiltersCount = () => {
@@ -83,11 +97,11 @@ export default function IdeasScreen() {
   };
 
   const filterOptions = [
-    { key: 'all', label: 'All', icon: undefined },
-    { key: 'text', label: 'Text', icon: 'type' },
-    { key: 'voice', label: 'Voice', icon: 'mic' },
-    { key: 'image', label: 'Image', icon: 'image' },
-    { key: 'favorites', label: 'Favorites', icon: 'heart' },
+    { key: "all", label: "All", icon: undefined },
+    { key: "text", label: "Text", icon: "type" },
+    { key: "voice", label: "Voice", icon: "mic" },
+    { key: "image", label: "Image", icon: "image" },
+    { key: "favorites", label: "Favorites", icon: "heart" },
   ];
 
   if (loading) {
@@ -127,24 +141,31 @@ export default function IdeasScreen() {
           horizontal
           showsHorizontalScrollIndicator={false}
           data={filterOptions}
-          keyExtractor={item => item.key}
+          keyExtractor={(item) => item.key}
           contentContainerStyle={styles.filterList}
           renderItem={({ item }) => {
-            const isActive = 
-              item.key === 'all' ? !selectedFilter.type && !selectedFilter.favorites :
-              item.key === 'favorites' ? selectedFilter.favorites :
-              selectedFilter.type === item.key;
+            const isActive =
+              item.key === "all"
+                ? !selectedFilter.type && !selectedFilter.favorites
+                : item.key === "favorites"
+                ? selectedFilter.favorites
+                : selectedFilter.type === item.key;
 
             return (
               <TouchableOpacity
-                style={[styles.filterButton, isActive && styles.filterButtonActive]}
+                style={[
+                  styles.filterButton,
+                  isActive && styles.filterButtonActive,
+                ]}
                 onPress={() => {
-                  if (item.key === 'all') {
+                  if (item.key === "all") {
                     setSelectedFilter({});
-                  } else if (item.key === 'favorites') {
+                  } else if (item.key === "favorites") {
                     setSelectedFilter({ favorites: !selectedFilter.favorites });
                   } else {
-                    setSelectedFilter({ type: item.key as 'text' | 'voice' | 'image' });
+                    setSelectedFilter({
+                      type: item.key as "text" | "voice" | "image",
+                    });
                   }
                 }}
               >
@@ -152,7 +173,7 @@ export default function IdeasScreen() {
                   <Feather
                     name={item.icon as any}
                     size={16}
-                    color={isActive ? '#FFFFFF' : '#6B7280'}
+                    color={isActive ? "#FFFFFF" : "#6B7280"}
                   />
                 )}
                 <Text
@@ -168,7 +189,10 @@ export default function IdeasScreen() {
           }}
         />
         {getActiveFiltersCount() > 0 && (
-          <TouchableOpacity style={styles.clearFiltersButton} onPress={clearFilters}>
+          <TouchableOpacity
+            style={styles.clearFiltersButton}
+            onPress={clearFilters}
+          >
             <Text style={styles.clearFiltersText}>Clear</Text>
           </TouchableOpacity>
         )}
@@ -177,18 +201,20 @@ export default function IdeasScreen() {
       {filteredIdeas.length === 0 ? (
         <View style={styles.emptyContainer}>
           <Text style={styles.emptyTitle}>
-            {searchQuery || getActiveFiltersCount() > 0 ? 'No ideas found' : 'No ideas yet'}
+            {searchQuery || getActiveFiltersCount() > 0
+              ? "No ideas found"
+              : "No ideas yet"}
           </Text>
           <Text style={styles.emptySubtitle}>
             {searchQuery || getActiveFiltersCount() > 0
-              ? 'Try adjusting your search or filters'
-              : 'Start capturing your ideas to see them here'}
+              ? "Try adjusting your search or filters"
+              : "Start capturing your ideas to see them here"}
           </Text>
         </View>
       ) : (
         <FlatList
           data={filteredIdeas}
-          keyExtractor={item => item.id}
+          keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
             <IdeaCard
               idea={item}
@@ -202,15 +228,15 @@ export default function IdeasScreen() {
         />
       )}
       {showEditModal && editingIdea && (
-      <CaptureModal
-        visible={showEditModal}
-        onClose={() => {
-          setShowEditModal(false);
-          setEditingIdea(undefined);
-        }}
-        onSave={handleUpdateIdea}
-        editingIdea={editingIdea}
-      />
+        <CaptureModal
+          visible={showEditModal}
+          onClose={() => {
+            setShowEditModal(false);
+            setEditingIdea(undefined);
+          }}
+          onSave={handleUpdateIdea}
+          editingIdea={editingIdea}
+        />
       )}
     </SafeAreaView>
   );
@@ -219,7 +245,7 @@ export default function IdeasScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: "#F9FAFB",
   },
   header: {
     padding: 20,
@@ -227,37 +253,37 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 28,
-    fontWeight: '700',
-    color: '#1F2937',
+    fontWeight: "700",
+    color: "#1F2937",
     marginBottom: 4,
   },
   subtitle: {
     fontSize: 16,
-    color: '#6B7280',
+    color: "#6B7280",
   },
   searchContainer: {
     paddingHorizontal: 20,
     marginBottom: 16,
   },
   searchBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#FFFFFF",
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: "#E5E7EB",
     gap: 12,
   },
   searchInput: {
     flex: 1,
     fontSize: 16,
-    color: '#1F2937',
+    color: "#1F2937",
   },
   filterContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: 20,
     marginBottom: 16,
   },
@@ -265,27 +291,27 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   filterButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: 12,
     paddingVertical: 8,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: "#FFFFFF",
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: "#E5E7EB",
     gap: 6,
   },
   filterButtonActive: {
-    backgroundColor: '#3B82F6',
-    borderColor: '#3B82F6',
+    backgroundColor: "#3B82F6",
+    borderColor: "#3B82F6",
   },
   filterButtonText: {
     fontSize: 14,
-    fontWeight: '500',
-    color: '#6B7280',
+    fontWeight: "500",
+    color: "#6B7280",
   },
   filterButtonTextActive: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
   },
   clearFiltersButton: {
     marginLeft: 12,
@@ -294,8 +320,8 @@ const styles = StyleSheet.create({
   },
   clearFiltersText: {
     fontSize: 14,
-    color: '#3B82F6',
-    fontWeight: '500',
+    color: "#3B82F6",
+    fontWeight: "500",
   },
   listContainer: {
     paddingHorizontal: 20,
@@ -303,30 +329,30 @@ const styles = StyleSheet.create({
   },
   emptyContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     paddingHorizontal: 40,
   },
   emptyTitle: {
     fontSize: 20,
-    fontWeight: '600',
-    color: '#1F2937',
+    fontWeight: "600",
+    color: "#1F2937",
     marginBottom: 8,
-    textAlign: 'center',
+    textAlign: "center",
   },
   emptySubtitle: {
     fontSize: 16,
-    color: '#6B7280',
-    textAlign: 'center',
+    color: "#6B7280",
+    textAlign: "center",
     lineHeight: 24,
   },
   loadingContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   loadingText: {
     fontSize: 16,
-    color: '#6B7280',
+    color: "#6B7280",
   },
 });

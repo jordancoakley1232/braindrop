@@ -17,6 +17,7 @@ import * as ImagePicker from 'expo-image-picker';
 import * as Haptics from 'expo-haptics';
 import { Idea } from '@/types/idea';
 
+
 interface CaptureModalProps {
   visible: boolean;
   onClose: () => void;
@@ -65,13 +66,17 @@ export function CaptureModal({ visible, onClose, onSave, editingIdea }: CaptureM
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
 
-    const ideaData: Omit<Idea, 'id' | 'createdAt' | 'updatedAt'> = {
+    const ideaData: Idea = {
       type,
       title: title.trim(),
       content: content.trim(),
       tags,
       isFavorite,
       uri: imageUri || undefined,
+      id: new Date().getTime().toString(),
+      createdAt: new Date().toISOString() as any,
+      updatedAt: new Date().toISOString() as any, 
+      
     };
 
     onSave(ideaData);

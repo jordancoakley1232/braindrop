@@ -1,33 +1,46 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
-import { Feather } from '@expo/vector-icons';
-import { useIdeas } from '@/hooks/useIdeas';
-import { CaptureModal } from '@/components/CaptureModal';
-import { QuickCaptureButton } from '@/components/QuickCaptureButton';
-import { Idea } from '@/types/idea';
-import { useFocusEffect } from '@react-navigation/native';
-import CaptureTest from '@/components/CaptureTest';
+import React, { useEffect, useState } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  ActivityIndicator,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { LinearGradient } from "expo-linear-gradient";
+import { Feather } from "@expo/vector-icons";
+import { STORAGE_KEY, useIdeas } from "@/hooks/useIdeas";
+import { CaptureModal } from "@/components/CaptureModal";
+import { QuickCaptureButton } from "@/components/QuickCaptureButton";
+import { Idea } from "@/types/idea";
+import { useFocusEffect } from "@react-navigation/native";
+import CaptureTest from "@/components/CaptureTest";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function CaptureScreen() {
   const [modalVisible, setModalVisible] = useState(false);
   const { ideas, addIdea, loading, refreshIdeas } = useIdeas();
-      useFocusEffect(
-      React.useCallback(() => {
-        refreshIdeas();
-      }, [])
-    );
+  useFocusEffect(
+    React.useCallback(() => {
+      refreshIdeas();
+    }, [])
+  );
 
-  const handleSaveIdea = async (ideaData: Omit<Idea, 'id' | 'createdAt' | 'updatedAt'>) => {
-    await addIdea(ideaData);
+  const handleSaveIdea = async (ideaData: any) => {
+    try {
+      await addIdea(ideaData);
+      await refreshIdeas();
+    } catch (error) {
+      console.error("Error saving ideas:", error);
+    }
   };
 
   const getTodayStats = () => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    
-    const todayIdeas = ideas.filter(idea => {
+
+    const todayIdeas = ideas.filter((idea) => {
       const ideaDate = new Date(idea.createdAt);
       ideaDate.setHours(0, 0, 0, 0);
       return ideaDate.getTime() === today.getTime();
@@ -36,7 +49,7 @@ export default function CaptureScreen() {
     return {
       today: todayIdeas.length,
       total: ideas.length,
-      favorites: ideas.filter(idea => idea.isFavorite).length,
+      favorites: ideas.filter((idea) => idea.isFavorite).length,
     };
   };
 
@@ -44,34 +57,31 @@ export default function CaptureScreen() {
 
   const quickActions = [
     {
-      title: 'Quick Text',
-      subtitle: 'Capture a thought',
-      icon: 'zap',
-      color: '#3B82F6',
+      title: "Quick Text",
+      subtitle: "Capture a thought",
+      icon: "zap",
+      color: "#3B82F6",
       onPress: () => setModalVisible(true),
     },
     {
-      title: 'Voice Note',
-      subtitle: 'Record your ideas',
-      icon: 'mic',
-      color: '#10B981',
+      title: "Voice Note",
+      subtitle: "Record your ideas",
+      icon: "mic",
+      color: "#10B981",
       onPress: () => setModalVisible(true),
     },
     {
-      title: 'Image Idea',
-      subtitle: 'Visual inspiration',
-      icon: 'image',
-      color: '#F59E0B',
+      title: "Image Idea",
+      subtitle: "Visual inspiration",
+      icon: "image",
+      color: "#F59E0B",
       onPress: () => setModalVisible(true),
     },
   ];
 
   return (
     <SafeAreaView style={styles.container}>
-      <LinearGradient
-        colors={['#F0F9FF', '#E0F2FE']}
-        style={styles.gradient}
-      >
+      <LinearGradient colors={["#F0F9FF", "#E0F2FE"]} style={styles.gradient}>
         <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
           <View style={styles.header}>
             <Text style={styles.welcomeText}>Ready to capture?</Text>
@@ -84,10 +94,12 @@ export default function CaptureScreen() {
             <View style={styles.statCard}>
               {loading ? (
                 <ActivityIndicator size="large" color="#3B82F6" />
-              ) : (<> 
-              <Text style={styles.statNumber}>{stats.today}</Text>
-              <Text style={styles.statLabel}>Ideas Today</Text>
-              </>)}
+              ) : (
+                <>
+                  <Text style={styles.statNumber}>{stats.today}</Text>
+                  <Text style={styles.statLabel}>Ideas Today</Text>
+                </>
+              )}
             </View>
             <View style={styles.statCard}>
               <Text style={styles.statNumber}>{stats.total}</Text>
@@ -108,12 +120,23 @@ export default function CaptureScreen() {
                   style={styles.quickActionCard}
                   onPress={action.onPress}
                 >
-                  <View style={[styles.quickActionIcon, { backgroundColor: action.color }]}> 
-                    <Feather name={action.icon as any} size={24} color="#FFFFFF" />
+                  <View
+                    style={[
+                      styles.quickActionIcon,
+                      { backgroundColor: action.color },
+                    ]}
+                  >
+                    <Feather
+                      name={action.icon as any}
+                      size={24}
+                      color="#FFFFFF"
+                    />
                   </View>
                   <View style={styles.quickActionText}>
                     <Text style={styles.quickActionTitle}>{action.title}</Text>
-                    <Text style={styles.quickActionSubtitle}>{action.subtitle}</Text>
+                    <Text style={styles.quickActionSubtitle}>
+                      {action.subtitle}
+                    </Text>
                   </View>
                 </TouchableOpacity>
               ))}
@@ -127,7 +150,8 @@ export default function CaptureScreen() {
               <View style={styles.tipContent}>
                 <Text style={styles.tipTitle}>Capture Everything</Text>
                 <Text style={styles.tipText}>
-                  Don't filter your thoughts - capture them all. You can organize later.
+                  Don't filter your thoughts - capture them all. You can
+                  organize later.
                 </Text>
               </View>
             </View>
@@ -136,7 +160,8 @@ export default function CaptureScreen() {
               <View style={styles.tipContent}>
                 <Text style={styles.tipTitle}>Use Tags</Text>
                 <Text style={styles.tipText}>
-                  Tag your ideas with context, mood, or project to find them easily.
+                  Tag your ideas with context, mood, or project to find them
+                  easily.
                 </Text>
               </View>
             </View>
@@ -145,15 +170,14 @@ export default function CaptureScreen() {
 
         <QuickCaptureButton onPress={() => setModalVisible(true)} />
 
-            {modalVisible && (
-        <CaptureModal
-          visible={modalVisible}
-          onClose={() => setModalVisible(false)}
-          onSave={handleSaveIdea}
-        />
-            )}
-            {/* <CaptureTest /> */}
-
+        {modalVisible && (
+          <CaptureModal
+            visible={modalVisible}
+            onClose={() => setModalVisible(false)}
+            onSave={handleSaveIdea}
+          />
+        )}
+        {/* <CaptureTest /> */}
       </LinearGradient>
     </SafeAreaView>
   );
@@ -175,27 +199,27 @@ const styles = StyleSheet.create({
   },
   welcomeText: {
     fontSize: 28,
-    fontWeight: '700',
-    color: '#1F2937',
+    fontWeight: "700",
+    color: "#1F2937",
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
-    color: '#6B7280',
+    color: "#6B7280",
     lineHeight: 24,
   },
   statsContainer: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 12,
     marginBottom: 32,
   },
   statCard: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: "#FFFFFF",
     padding: 16,
     borderRadius: 16,
-    alignItems: 'center',
-    shadowColor: '#000',
+    alignItems: "center",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
@@ -203,34 +227,34 @@ const styles = StyleSheet.create({
   },
   statNumber: {
     fontSize: 24,
-    fontWeight: '700',
-    color: '#1F2937',
+    fontWeight: "700",
+    color: "#1F2937",
     marginBottom: 4,
   },
   statLabel: {
     fontSize: 12,
-    color: '#6B7280',
-    fontWeight: '500',
+    color: "#6B7280",
+    fontWeight: "500",
   },
   quickActionsContainer: {
     marginBottom: 32,
   },
   sectionTitle: {
     fontSize: 20,
-    fontWeight: '600',
-    color: '#1F2937',
+    fontWeight: "600",
+    color: "#1F2937",
     marginBottom: 16,
   },
   quickActions: {
     gap: 12,
   },
   quickActionCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#FFFFFF",
     padding: 16,
     borderRadius: 16,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
@@ -240,8 +264,8 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     marginRight: 16,
   },
   quickActionText: {
@@ -249,25 +273,25 @@ const styles = StyleSheet.create({
   },
   quickActionTitle: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#1F2937',
+    fontWeight: "600",
+    color: "#1F2937",
     marginBottom: 4,
   },
   quickActionSubtitle: {
     fontSize: 14,
-    color: '#6B7280',
+    color: "#6B7280",
   },
   tipsContainer: {
     marginBottom: 100,
   },
   tipCard: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    backgroundColor: '#FFFFFF',
+    flexDirection: "row",
+    alignItems: "flex-start",
+    backgroundColor: "#FFFFFF",
     padding: 16,
     borderRadius: 16,
     marginBottom: 12,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 4,
@@ -279,13 +303,17 @@ const styles = StyleSheet.create({
   },
   tipTitle: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#1F2937',
+    fontWeight: "600",
+    color: "#1F2937",
     marginBottom: 4,
   },
   tipText: {
     fontSize: 12,
-    color: '#6B7280',
+    color: "#6B7280",
     lineHeight: 16,
   },
 });
+
+function uuidv4(): string {
+  throw new Error("Function not implemented.");
+}
