@@ -1,7 +1,7 @@
 import React from 'react';
 import { TouchableOpacity, StyleSheet, Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Plus } from 'lucide-react-native';
+import { Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import Animated, { 
   useSharedValue, 
@@ -53,7 +53,7 @@ export function QuickCaptureButton({ onPress }: QuickCaptureButtonProps) {
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
         >
-          <Plus size={28} color="#FFFFFF" strokeWidth={2.5} />
+          <Feather name="plus" size={28} color="#FFFFFF" />
         </LinearGradient>
       </TouchableOpacity>
     </Animated.View>

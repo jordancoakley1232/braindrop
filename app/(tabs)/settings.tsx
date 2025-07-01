@@ -8,7 +8,7 @@ import {
   Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Download, Upload, Trash2, Info, Heart, Zap, Shield, CircleHelp as HelpCircle } from 'lucide-react-native';
+import { Feather } from '@expo/vector-icons';
 import { useIdeas } from '@/hooks/useIdeas';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -53,62 +53,57 @@ export default function SettingsScreen() {
       title: 'Data Management',
       items: [
         {
-          icon: Download,
+          icon: 'download',
           title: 'Export Data',
           subtitle: 'Download your ideas as JSON',
           onPress: handleExportData,
         },
         {
-          icon: Upload,
+          icon: 'upload',
           title: 'Import Data',
-          subtitle: 'Restore from backup',
+          subtitle: 'Restore ideas from backup',
           onPress: () => Alert.alert('Coming Soon', 'Import feature will be available in a future update'),
         },
         {
-          icon: Trash2,
+          icon: 'trash',
           title: 'Clear All Data',
-          subtitle: 'Delete all ideas permanently',
+          subtitle: 'Delete all your ideas',
           onPress: handleClearAllData,
           danger: true,
         },
       ],
     },
     {
-      title: 'About BrainDrop',
+      title: 'App Info',
       items: [
         {
-          icon: Info,
-          title: 'App Version',
-          subtitle: 'v1.0.0',
+          icon: 'info',
+          title: 'About',
+          subtitle: 'Learn more about Braindrop',
           onPress: () => {},
         },
         {
-          icon: Heart,
-          title: 'Made for ADHD',
-          subtitle: 'Designed with neurodivergent minds in mind',
+          icon: 'heart',
+          title: 'Support',
+          subtitle: 'Support the project',
           onPress: () => {},
         },
         {
-          icon: Zap,
-          title: 'Quick Capture',
-          subtitle: 'Capture ideas instantly, organize later',
+          icon: 'zap',
+          title: 'Pro Features',
+          subtitle: 'Unlock more features',
           onPress: () => {},
         },
         {
-          icon: Shield,
-          title: 'Privacy First',
-          subtitle: 'All data stored locally on your device',
+          icon: 'shield',
+          title: 'Privacy Policy',
+          subtitle: 'Read our privacy policy',
           onPress: () => {},
         },
-      ],
-    },
-    {
-      title: 'Support',
-      items: [
         {
-          icon: HelpCircle,
-          title: 'Help & Feedback',
-          subtitle: 'Get help or share feedback',
+          icon: 'help-circle',
+          title: 'Help',
+          subtitle: 'Get help and support',
           onPress: () => Alert.alert('Help & Feedback', 'Contact support at help@braindrop.app'),
         },
       ],
@@ -174,7 +169,8 @@ export default function SettingsScreen() {
                     styles.settingsItemIcon,
                     item.danger && styles.settingsItemIconDanger,
                   ]}>
-                    <item.icon
+                    <Feather
+                      name={item.icon as any}
                       size={20}
                       color={item.danger ? '#EF4444' : '#6B7280'}
                     />

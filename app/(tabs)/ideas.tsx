@@ -9,18 +9,26 @@ import {
   Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Search, Filter, Heart, Type, Mic, Image as ImageIcon } from 'lucide-react-native';
+import { Feather } from '@expo/vector-icons';
 import { useIdeas } from '@/hooks/useIdeas';
 import { IdeaCard } from '@/components/IdeaCard';
 import { CaptureModal } from '@/components/CaptureModal';
 import { Idea, IdeaFilter } from '@/types/idea';
+import { useFocusEffect } from '@react-navigation/native';
 
 export default function IdeasScreen() {
-  const { ideas, loading, updateIdea, deleteIdea, toggleFavorite } = useIdeas();
+  const { ideas, loading, updateIdea, deleteIdea, toggleFavorite, refreshIdeas } = useIdeas();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFilter, setSelectedFilter] = useState<IdeaFilter>({});
   const [editingIdea, setEditingIdea] = useState<Idea | undefined>();
   const [showEditModal, setShowEditModal] = useState(false);
+
+    useFocusEffect(
+    React.useCallback(() => {
+      refreshIdeas();
+    }, [])
+  );
+
 
   const filteredIdeas = useMemo(() => {
     let filtered = ideas;
@@ -75,11 +83,11 @@ export default function IdeasScreen() {
   };
 
   const filterOptions = [
-    { key: 'all', label: 'All', icon: null },
-    { key: 'text', label: 'Text', icon: Type },
-    { key: 'voice', label: 'Voice', icon: Mic },
-    { key: 'image', label: 'Image', icon: ImageIcon },
-    { key: 'favorites', label: 'Favorites', icon: Heart },
+    { key: 'all', label: 'All', icon: undefined },
+    { key: 'text', label: 'Text', icon: 'type' },
+    { key: 'voice', label: 'Voice', icon: 'mic' },
+    { key: 'image', label: 'Image', icon: 'image' },
+    { key: 'favorites', label: 'Favorites', icon: 'heart' },
   ];
 
   if (loading) {
@@ -103,7 +111,7 @@ export default function IdeasScreen() {
 
       <View style={styles.searchContainer}>
         <View style={styles.searchBar}>
-          <Search size={20} color="#6B7280" />
+          <Feather name="search" size={20} color="#6B7280" />
           <TextInput
             style={styles.searchInput}
             placeholder="Search ideas, tags, or content..."
@@ -141,7 +149,8 @@ export default function IdeasScreen() {
                 }}
               >
                 {item.icon && (
-                  <item.icon
+                  <Feather
+                    name={item.icon as any}
                     size={16}
                     color={isActive ? '#FFFFFF' : '#6B7280'}
                   />
@@ -192,7 +201,7 @@ export default function IdeasScreen() {
           showsVerticalScrollIndicator={false}
         />
       )}
-
+      {showEditModal && editingIdea && (
       <CaptureModal
         visible={showEditModal}
         onClose={() => {
@@ -202,6 +211,7 @@ export default function IdeasScreen() {
         onSave={handleUpdateIdea}
         editingIdea={editingIdea}
       />
+      )}
     </SafeAreaView>
   );
 }

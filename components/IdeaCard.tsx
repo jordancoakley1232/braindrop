@@ -1,7 +1,7 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Alert, Platform } from 'react-native';
 import { Idea } from '@/types/idea';
-import { Heart, Mic, Image as ImageIcon, Type, Trash2, CreditCard as Edit } from 'lucide-react-native';
+import { Feather } from '@expo/vector-icons';
 import Animated, { 
   useSharedValue, 
   useAnimatedStyle, 
@@ -43,7 +43,12 @@ export function IdeaCard({ idea, onEdit, onDelete, onToggleFavorite }: IdeaCardP
     onToggleFavorite(idea.id);
   };
 
-  const handleDelete = () => {
+const handleDelete = () => {
+  if (Platform.OS === 'web') {
+    if (window.confirm('Are you sure you want to delete this idea?')) {
+      onDelete(idea.id);
+    }
+  } else {
     Alert.alert(
       'Delete Idea',
       'Are you sure you want to delete this idea?',
@@ -52,16 +57,17 @@ export function IdeaCard({ idea, onEdit, onDelete, onToggleFavorite }: IdeaCardP
         { text: 'Delete', style: 'destructive', onPress: () => onDelete(idea.id) },
       ]
     );
-  };
+  }
+};
 
   const getTypeIcon = () => {
     switch (idea.type) {
       case 'text':
-        return <Type size={16} color="#6B7280" />;
+        return <Feather name="type" size={16} color="#6B7280" />;
       case 'voice':
-        return <Mic size={16} color="#6B7280" />;
+        return <Feather name="mic" size={16} color="#6B7280" />;
       case 'image':
-        return <ImageIcon size={16} color="#6B7280" />;
+        return <Feather name="image" size={16} color="#6B7280" />;
     }
   };
 
@@ -95,7 +101,8 @@ export function IdeaCard({ idea, onEdit, onDelete, onToggleFavorite }: IdeaCardP
           <View style={styles.actions}>
             <Animated.View style={favoriteAnimatedStyle}>
               <TouchableOpacity onPress={handleFavorite} style={styles.actionButton}>
-                <Heart 
+                <Feather 
+                  name="heart" 
                   size={20} 
                   color={idea.isFavorite ? "#EF4444" : "#6B7280"} 
                   fill={idea.isFavorite ? "#EF4444" : "none"}
@@ -103,7 +110,7 @@ export function IdeaCard({ idea, onEdit, onDelete, onToggleFavorite }: IdeaCardP
               </TouchableOpacity>
             </Animated.View>
             <TouchableOpacity onPress={handleDelete} style={styles.actionButton}>
-              <Trash2 size={20} color="#6B7280" />
+              <Feather name="trash" size={20} color="#6B7280" />
             </TouchableOpacity>
           </View>
         </View>

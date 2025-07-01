@@ -11,8 +11,8 @@ import {
   Platform,
 } from 'react-native';
 import { BlurView } from 'expo-blur';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Type, Mic, Image as ImageIcon, X, Hash, Check } from 'lucide-react-native';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import { Feather, MaterialCommunityIcons, MaterialIcons, Ionicons, FontAwesome } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import * as Haptics from 'expo-haptics';
 import { Idea } from '@/types/idea';
@@ -122,9 +122,9 @@ export function CaptureModal({ visible, onClose, onSave, editingIdea }: CaptureM
       <Text style={styles.sectionTitle}>Type</Text>
       <View style={styles.typeButtons}>
         {[
-          { type: 'text' as const, icon: Type, label: 'Text' },
-          { type: 'voice' as const, icon: Mic, label: 'Voice' },
-          { type: 'image' as const, icon: ImageIcon, label: 'Image' },
+          { type: 'text' as const, icon: Feather, label: 'Text' },
+          { type: 'voice' as const, icon: Feather, label: 'Voice' },
+          { type: 'image' as const, icon: Feather, label: 'Image' },
         ].map(({ type: itemType, icon: Icon, label }) => (
           <TouchableOpacity
             key={itemType}
@@ -134,10 +134,9 @@ export function CaptureModal({ visible, onClose, onSave, editingIdea }: CaptureM
             ]}
             onPress={() => handleTypeChange(itemType)}
           >
-            <Icon
-              size={20}
-              color={type === itemType ? '#FFFFFF' : '#6B7280'}
-            />
+            {itemType === 'text' && <Feather name="type" size={20} color={type === itemType ? '#FFFFFF' : '#6B7280'} />}
+            {itemType === 'voice' && <Feather name="mic" size={20} color={type === itemType ? '#FFFFFF' : '#6B7280'} />}
+            {itemType === 'image' && <Feather name="image" size={20} color={type === itemType ? '#FFFFFF' : '#6B7280'} />}
             <Text
               style={[
                 styles.typeButtonText,
@@ -174,7 +173,7 @@ export function CaptureModal({ visible, onClose, onSave, editingIdea }: CaptureM
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Voice Note</Text>
             <TouchableOpacity style={styles.voiceButton}>
-              <Mic size={24} color="#3B82F6" />
+              <MaterialCommunityIcons name="microphone" size={24} color="#3B82F6" />
               <Text style={styles.voiceButtonText}>Tap to record</Text>
             </TouchableOpacity>
             <Text style={styles.helperText}>Voice recording not available in web preview</Text>
@@ -185,7 +184,7 @@ export function CaptureModal({ visible, onClose, onSave, editingIdea }: CaptureM
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Image</Text>
             <TouchableOpacity style={styles.imageButton} onPress={handleImagePicker}>
-              <ImageIcon size={24} color="#3B82F6" />
+              <MaterialIcons name="image" size={24} color="#3B82F6" />
               <Text style={styles.imageButtonText}>
                 {imageUri ? 'Change Image' : 'Select Image'}
               </Text>
@@ -199,15 +198,16 @@ export function CaptureModal({ visible, onClose, onSave, editingIdea }: CaptureM
   };
 
   return (
+        <SafeAreaProvider>
+          <SafeAreaView style={styles.centeredView}>
+    
     <Modal visible={visible} animationType="slide" presentationStyle="pageSheet">
-      <BlurView intensity={100} style={styles.overlay}>
-        <SafeAreaView style={styles.container}>
           <View style={styles.header}>
             <Text style={styles.headerTitle}>
               {editingIdea ? 'Edit Idea' : 'Capture Idea'}
             </Text>
             <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
-              <X size={24} color="#6B7280" />
+              <Ionicons name="close" size={24} color="#6B7280" />
             </TouchableOpacity>
           </View>
 
@@ -230,7 +230,7 @@ export function CaptureModal({ visible, onClose, onSave, editingIdea }: CaptureM
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Tags</Text>
               <View style={styles.tagInput}>
-                <Hash size={20} color="#6B7280" />
+                <FontAwesome name="tags" size={20} color="#6B7280" />
                 <TextInput
                   style={styles.tagTextInput}
                   value={newTag}
@@ -241,7 +241,7 @@ export function CaptureModal({ visible, onClose, onSave, editingIdea }: CaptureM
                 />
                 {newTag.trim() && (
                   <TouchableOpacity onPress={handleAddTag} style={styles.addTagButton}>
-                    <Check size={16} color="#3B82F6" />
+                    <Feather name="check" size={16} color="#3B82F6" />
                   </TouchableOpacity>
                 )}
               </View>
@@ -254,7 +254,7 @@ export function CaptureModal({ visible, onClose, onSave, editingIdea }: CaptureM
                       onPress={() => handleRemoveTag(tag)}
                     >
                       <Text style={styles.tagText}>#{tag}</Text>
-                      <X size={14} color="#0891B2" />
+                      <Feather name="x" size={14} color="#0891B2" />
                     </TouchableOpacity>
                   ))}
                 </View>
@@ -277,13 +277,18 @@ export function CaptureModal({ visible, onClose, onSave, editingIdea }: CaptureM
               </Text>
             </TouchableOpacity>
           </View>
-        </SafeAreaView>
-      </BlurView>
     </Modal>
+          </SafeAreaView>
+        </SafeAreaProvider>
   );
 }
 
 const styles = StyleSheet.create({
+    centeredView: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   overlay: {
     flex: 1,
   },

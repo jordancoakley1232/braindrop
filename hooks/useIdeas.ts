@@ -16,6 +16,7 @@ export function useIdeas() {
   const loadIdeas = async () => {
     try {
       const stored = await AsyncStorage.getItem(STORAGE_KEY);
+      console.log("LOADED", stored)
       if (stored) {
         const parsedIdeas = JSON.parse(stored).map((idea: any) => ({
           ...idea,
@@ -33,6 +34,7 @@ export function useIdeas() {
 
   const saveIdeas = async (newIdeas: Idea[]) => {
     try {
+      console.log(newIdeas)
       await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(newIdeas));
       setIdeas(newIdeas);
     } catch (error) {

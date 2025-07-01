@@ -1,16 +1,23 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Lightbulb, Zap, Target, Sparkles } from 'lucide-react-native';
+import { Feather } from '@expo/vector-icons';
 import { useIdeas } from '@/hooks/useIdeas';
 import { CaptureModal } from '@/components/CaptureModal';
 import { QuickCaptureButton } from '@/components/QuickCaptureButton';
 import { Idea } from '@/types/idea';
+import { useFocusEffect } from '@react-navigation/native';
+import CaptureTest from '@/components/CaptureTest';
 
 export default function CaptureScreen() {
   const [modalVisible, setModalVisible] = useState(false);
-  const { ideas, addIdea } = useIdeas();
+  const { ideas, addIdea, loading, refreshIdeas } = useIdeas();
+      useFocusEffect(
+      React.useCallback(() => {
+        refreshIdeas();
+      }, [])
+    );
 
   const handleSaveIdea = async (ideaData: Omit<Idea, 'id' | 'createdAt' | 'updatedAt'>) => {
     await addIdea(ideaData);
@@ -39,21 +46,21 @@ export default function CaptureScreen() {
     {
       title: 'Quick Text',
       subtitle: 'Capture a thought',
-      icon: Lightbulb,
+      icon: 'zap',
       color: '#3B82F6',
       onPress: () => setModalVisible(true),
     },
     {
       title: 'Voice Note',
       subtitle: 'Record your ideas',
-      icon: Zap,
+      icon: 'mic',
       color: '#10B981',
       onPress: () => setModalVisible(true),
     },
     {
       title: 'Image Idea',
       subtitle: 'Visual inspiration',
-      icon: Sparkles,
+      icon: 'image',
       color: '#F59E0B',
       onPress: () => setModalVisible(true),
     },
@@ -75,8 +82,12 @@ export default function CaptureScreen() {
 
           <View style={styles.statsContainer}>
             <View style={styles.statCard}>
+              {loading ? (
+                <ActivityIndicator size="large" color="#3B82F6" />
+              ) : (<> 
               <Text style={styles.statNumber}>{stats.today}</Text>
               <Text style={styles.statLabel}>Ideas Today</Text>
+              </>)}
             </View>
             <View style={styles.statCard}>
               <Text style={styles.statNumber}>{stats.total}</Text>
@@ -97,8 +108,8 @@ export default function CaptureScreen() {
                   style={styles.quickActionCard}
                   onPress={action.onPress}
                 >
-                  <View style={[styles.quickActionIcon, { backgroundColor: action.color }]}>
-                    <action.icon size={24} color="#FFFFFF" />
+                  <View style={[styles.quickActionIcon, { backgroundColor: action.color }]}> 
+                    <Feather name={action.icon as any} size={24} color="#FFFFFF" />
                   </View>
                   <View style={styles.quickActionText}>
                     <Text style={styles.quickActionTitle}>{action.title}</Text>
@@ -112,7 +123,7 @@ export default function CaptureScreen() {
           <View style={styles.tipsContainer}>
             <Text style={styles.sectionTitle}>💡 ADHD-Friendly Tips</Text>
             <View style={styles.tipCard}>
-              <Target size={20} color="#3B82F6" />
+              <Feather name="target" size={20} color="#3B82F6" />
               <View style={styles.tipContent}>
                 <Text style={styles.tipTitle}>Capture Everything</Text>
                 <Text style={styles.tipText}>
@@ -121,7 +132,7 @@ export default function CaptureScreen() {
               </View>
             </View>
             <View style={styles.tipCard}>
-              <Sparkles size={20} color="#10B981" />
+              <Feather name="star" size={20} color="#10B981" />
               <View style={styles.tipContent}>
                 <Text style={styles.tipTitle}>Use Tags</Text>
                 <Text style={styles.tipText}>
@@ -134,11 +145,15 @@ export default function CaptureScreen() {
 
         <QuickCaptureButton onPress={() => setModalVisible(true)} />
 
+            {modalVisible && (
         <CaptureModal
           visible={modalVisible}
           onClose={() => setModalVisible(false)}
           onSave={handleSaveIdea}
         />
+            )}
+            {/* <CaptureTest /> */}
+
       </LinearGradient>
     </SafeAreaView>
   );

@@ -1,5 +1,5 @@
 import { Tabs } from 'expo-router';
-import { Lightbulb, Grid3x3 as Grid3X3, Settings } from 'lucide-react-native';
+import { Feather } from '@expo/vector-icons';
 
 export default function TabLayout() {
   return (
@@ -12,7 +12,7 @@ export default function TabLayout() {
           backgroundColor: '#FFFFFF',
           borderTopWidth: 1,
           borderTopColor: '#F3F4F6',
-          height: 60,
+          // height: 60,
           paddingBottom: 8,
           paddingTop: 8,
         },
@@ -27,7 +27,7 @@ export default function TabLayout() {
         options={{
           title: 'Capture',
           tabBarIcon: ({ size, color }) => (
-            <Lightbulb size={size} color={color} />
+            <Feather name="zap" size={size} color={color} />
           ),
         }}
       />
@@ -36,7 +36,7 @@ export default function TabLayout() {
         options={{
           title: 'Ideas',
           tabBarIcon: ({ size, color }) => (
-            <Grid3X3 size={size} color={color} />
+            <Feather name="grid" size={size} color={color} />
           ),
         }}
       />
@@ -45,7 +45,7 @@ export default function TabLayout() {
         options={{
           title: 'Settings',
           tabBarIcon: ({ size, color }) => (
-            <Settings size={size} color={color} />
+            <Feather name="settings" size={size} color={color} />
           ),
         }}
       />
