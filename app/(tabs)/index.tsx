@@ -20,6 +20,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function CaptureScreen() {
   const [modalVisible, setModalVisible] = useState(false);
+  const [ideaType, setIdeaType] = useState<"text" | "voice" | "image">("text");
   const { ideas, addIdea, loading, refreshIdeas } = useIdeas();
   useFocusEffect(
     React.useCallback(() => {
@@ -55,27 +56,35 @@ export default function CaptureScreen() {
 
   const stats = getTodayStats();
 
+  const toggleCaptureModal = (type: "text" | "voice" | "image") => {
+    setIdeaType(type);
+    setModalVisible(true);
+    // Additional logic can be added here based on the type of capture
+    // For example, if type is "voice", you might want to start a voice recording
+    // or if type is "image", you might want to open the image picker.
+  };
+
   const quickActions = [
     {
       title: "Quick Text",
       subtitle: "Capture a thought",
       icon: "zap",
       color: "#3B82F6",
-      onPress: () => setModalVisible(true),
+      onPress: () => toggleCaptureModal("text"),
     },
     {
       title: "Voice Note",
       subtitle: "Record your ideas",
       icon: "mic",
       color: "#10B981",
-      onPress: () => setModalVisible(true),
+      onPress: () => toggleCaptureModal("voice"),
     },
     {
       title: "Image Idea",
       subtitle: "Visual inspiration",
       icon: "image",
       color: "#F59E0B",
-      onPress: () => setModalVisible(true),
+      onPress: () => toggleCaptureModal("image"),
     },
   ];
 
@@ -174,6 +183,7 @@ export default function CaptureScreen() {
           <CaptureModal
             visible={modalVisible}
             onClose={() => setModalVisible(false)}
+            ideaType={ideaType}
             onSave={handleSaveIdea}
           />
         )}
@@ -313,7 +323,3 @@ const styles = StyleSheet.create({
     lineHeight: 16,
   },
 });
-
-function uuidv4(): string {
-  throw new Error("Function not implemented.");
-}

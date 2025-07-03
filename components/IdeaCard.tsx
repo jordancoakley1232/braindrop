@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   Alert,
   Platform,
+  Image,
 } from "react-native";
 import { Idea } from "@/types/idea";
 import { Feather } from "@expo/vector-icons";
@@ -132,9 +133,37 @@ export function IdeaCard({
           </View>
         </View>
 
-        <Text style={styles.content} numberOfLines={2}>
-          {idea.content}
-        </Text>
+        {/* If the type of idea is an image, render thumbnail and then content below */}
+        {idea.type === "image" && idea.uri ? (
+          <View
+            style={{
+              marginBottom: 8,
+              flexDirection: "row",
+              alignItems: "center",
+              columnGap: 8,
+            }}
+          >
+            <Image
+              source={{ uri: idea.uri }}
+              style={{ width: 40, height: 40, borderRadius: 12 }}
+              resizeMode="cover"
+            />
+
+            {idea.description ? (
+              <Text
+                style={[styles.content, { flex: 1 }]}
+                numberOfLines={2}
+                ellipsizeMode="tail"
+              >
+                {idea.description}
+              </Text>
+            ) : null}
+          </View>
+        ) : (
+          <Text style={styles.content} numberOfLines={2}>
+            {idea.content}
+          </Text>
+        )}
 
         <View style={styles.footer}>
           <View style={styles.tags}>

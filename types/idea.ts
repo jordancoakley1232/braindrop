@@ -8,6 +8,7 @@ export interface Idea {
   updatedAt: string;
   isFavorite: boolean;
   uri?: string; // For image/voice files
+  description?: string; // For image ideas, can be used for additional context
 }
 
 export interface IdeaFilter {
@@ -16,3 +17,5 @@ export interface IdeaFilter {
   favorites?: boolean;
   searchQuery?: string;
 }
+
+export type IdeaType = "text" | "voice" | "image";
