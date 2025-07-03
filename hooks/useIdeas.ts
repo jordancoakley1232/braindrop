@@ -63,6 +63,7 @@ export function useIdeas() {
     const idea = ideas.find((i) => i.id === id);
     if (idea) {
       await updateIdea(id, { isFavorite: !idea.isFavorite });
+      await loadIdeas(); // Refresh ideas after toggling favorite
     }
   };
 

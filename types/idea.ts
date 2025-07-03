@@ -8,6 +8,7 @@ export interface Idea {
   updatedAt: string;
   isFavorite: boolean;
   uri?: string; // For image/voice files
+  recordingUri?: string; // For voice ideas, stores the recorded audio file URI
   description?: string; // For image ideas, can be used for additional context
 }
 

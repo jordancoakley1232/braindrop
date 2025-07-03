@@ -32,6 +32,7 @@ export function IdeaCard({
 }: IdeaCardProps) {
   const scaleValue = useSharedValue(1);
   const favoriteScale = useSharedValue(1);
+  console.log(idea.createdAt);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scaleValue.value }],
@@ -84,14 +85,72 @@ export function IdeaCard({
     }
   };
 
-  const formatDate = (date: Date) => {
-    // const now = new Date();
-    // const diff = now.getTime() - date.getTime();
-    // const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-    // if (days === 0) return "Today";
-    // if (days === 1) return "Yesterday";
-    // if (days < 7) return `${days} days ago`;
-    // return date.toLocaleDateString();
+  function formatDate(dateString: string) {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  }
+
+  const renderIdeaCard = () => {
+    if (idea.type === "text") {
+      return (
+        <Text style={styles.content} numberOfLines={2}>
+          {idea.content}
+        </Text>
+      );
+    }
+    if (idea.type === "image" && idea.uri) {
+      return (
+        <View
+          style={{
+            marginBottom: 8,
+            flexDirection: "row",
+            alignItems: "center",
+            columnGap: 8,
+          }}
+        >
+          <Image
+            source={{ uri: idea.uri }}
+            style={{ width: 40, height: 40, borderRadius: 12 }}
+            resizeMode="cover"
+          />
+          {idea.description ? (
+            <Text
+              style={[styles.content, { flex: 1 }]}
+              numberOfLines={2}
+              ellipsizeMode="tail"
+            >
+              {idea.description}
+            </Text>
+          ) : null}
+        </View>
+      );
+    }
+    if (idea.type === "voice" && idea.description) {
+      return (
+        <View
+          style={{
+            marginBottom: 8,
+            flexDirection: "row",
+            alignItems: "center",
+            columnGap: 8,
+          }}
+        >
+          {idea.description ? (
+            <Text
+              style={[styles.content, { flex: 1 }]}
+              numberOfLines={2}
+              ellipsizeMode="tail"
+            >
+              {idea.description}
+            </Text>
+          ) : null}
+        </View>
+      );
+    }
   };
 
   return (
@@ -132,39 +191,7 @@ export function IdeaCard({
             </TouchableOpacity>
           </View>
         </View>
-
-        {/* If the type of idea is an image, render thumbnail and then content below */}
-        {idea.type === "image" && idea.uri ? (
-          <View
-            style={{
-              marginBottom: 8,
-              flexDirection: "row",
-              alignItems: "center",
-              columnGap: 8,
-            }}
-          >
-            <Image
-              source={{ uri: idea.uri }}
-              style={{ width: 40, height: 40, borderRadius: 12 }}
-              resizeMode="cover"
-            />
-
-            {idea.description ? (
-              <Text
-                style={[styles.content, { flex: 1 }]}
-                numberOfLines={2}
-                ellipsizeMode="tail"
-              >
-                {idea.description}
-              </Text>
-            ) : null}
-          </View>
-        ) : (
-          <Text style={styles.content} numberOfLines={2}>
-            {idea.content}
-          </Text>
-        )}
-
+        {renderIdeaCard()}
         <View style={styles.footer}>
           <View style={styles.tags}>
             {idea.tags.slice(0, 3).map((tag, index) => (
@@ -177,6 +204,7 @@ export function IdeaCard({
             )}
           </View>
           {/* <Text style={styles.date}>{formatDate(idea.createdAt)}</Text> */}
+          <Text style={styles.date}>{formatDate(idea.createdAt)}</Text>
         </View>
       </TouchableOpacity>
     </Animated.View>

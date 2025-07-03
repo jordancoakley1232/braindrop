@@ -23,6 +23,8 @@ import {
 import * as ImagePicker from "expo-image-picker";
 import * as Haptics from "expo-haptics";
 import { Idea, IdeaType } from "@/types/idea";
+import { Audio } from "expo-av";
+import { AUDIO_RECORDING_OPTIONS } from "./constants";
 
 interface CaptureModalProps {
   visible: boolean;
@@ -54,6 +56,13 @@ export function CaptureModal({
     editingIdea?.isFavorite || false
   );
   const [imageUri, setImageUri] = useState(editingIdea?.uri || "");
+  const [recording, setRecording] = useState<Audio.Recording | null>(null);
+  const [recordedUri, setRecordedUri] = useState(
+    editingIdea?.recordingUri || ""
+  );
+  const [isRecording, setIsRecording] = useState(false);
+  const [sound, setSound] = useState<Audio.Sound | null>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
 
   const resetForm = () => {
     if (!editingIdea) {
@@ -65,6 +74,11 @@ export function CaptureModal({
       setIsFavorite(false);
       setImageUri("");
       setDescription("");
+      setRecordedUri("");
+      setRecording(null);
+      setSound(null);
+      setIsRecording(false);
+      setIsPlaying(false);
     }
   };
 
@@ -91,11 +105,13 @@ export function CaptureModal({
     const ideaData: Idea = {
       type,
       title: title.trim(),
-      content: content.trim(),
+      content: type === "voice" ? "" : content.trim(),
       tags,
       isFavorite,
       uri: imageUri || undefined,
-      description: type === "image" ? description.trim() : undefined,
+      recordingUri: type === "voice" ? recordedUri : undefined,
+      description:
+        type === "image" || type === "voice" ? description.trim() : undefined,
       id: new Date().getTime().toString(),
       createdAt: new Date().toISOString() as any,
       updatedAt: new Date().toISOString() as any,
@@ -141,6 +157,69 @@ export function CaptureModal({
       }
     } catch (error) {
       Alert.alert("Error", "Failed to pick image");
+    }
+  };
+
+  const startRecording = async () => {
+    try {
+      const { status } = await Audio.requestPermissionsAsync();
+      if (status !== "granted") {
+        Alert.alert(
+          "Permission required",
+          "Please grant audio recording permission."
+        );
+        return;
+      }
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: true,
+        playsInSilentModeIOS: true,
+      });
+      const rec = new Audio.Recording();
+      await rec.prepareToRecordAsync(AUDIO_RECORDING_OPTIONS);
+      await rec.startAsync();
+      setRecording(rec);
+      setIsRecording(true);
+    } catch (err) {
+      Alert.alert("Recording error", "Could not start recording.");
+    }
+  };
+
+  const stopRecording = async () => {
+    try {
+      if (!recording) return;
+      await recording.stopAndUnloadAsync();
+      const uri = recording.getURI();
+      setRecordedUri(uri || "");
+      setRecording(null);
+      setIsRecording(false);
+    } catch (err) {
+      Alert.alert("Recording error", "Could not stop recording.");
+    }
+  };
+
+  const playRecording = async () => {
+    if (!recordedUri) return;
+    try {
+      if (sound) {
+        await sound.unloadAsync();
+        setSound(null);
+      }
+      const { sound: newSound } = await Audio.Sound.createAsync({
+        uri: recordedUri,
+      });
+      setSound(newSound);
+      setIsPlaying(true);
+      await newSound.playAsync();
+      newSound.setOnPlaybackStatusUpdate((status) => {
+        if (!status.isLoaded || status.didJustFinish) {
+          setIsPlaying(false);
+          newSound.unloadAsync();
+          setSound(null);
+        }
+      });
+    } catch (err) {
+      Alert.alert("Playback error", "Could not play recording.");
+      setIsPlaying(false);
     }
   };
 
@@ -217,17 +296,62 @@ export function CaptureModal({
         return (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Voice Note</Text>
-            <TouchableOpacity style={styles.voiceButton}>
+            <TouchableOpacity
+              style={styles.voiceButton}
+              onPress={isRecording ? stopRecording : startRecording}
+            >
               <MaterialCommunityIcons
-                name="microphone"
+                name={isRecording ? "stop" : "microphone"}
                 size={24}
                 color="#3B82F6"
               />
-              <Text style={styles.voiceButtonText}>Tap to record</Text>
+              <Text style={styles.voiceButtonText}>
+                {isRecording
+                  ? "Stop Recording"
+                  : recordedUri
+                  ? "Re-record"
+                  : "Tap to record"}
+              </Text>
             </TouchableOpacity>
-            <Text style={styles.helperText}>
-              Voice recording not available in web preview
-            </Text>
+            {recordedUri && (
+              <>
+                <TouchableOpacity
+                  style={[
+                    styles.voiceButton,
+                    {
+                      marginTop: 12,
+                      backgroundColor: "#E0E7FF",
+                      borderColor: "#6366F1",
+                    },
+                  ]}
+                  onPress={playRecording}
+                  disabled={isPlaying}
+                >
+                  <MaterialCommunityIcons
+                    name={isPlaying ? "pause" : "play"}
+                    size={24}
+                    color="#6366F1"
+                  />
+                  <Text style={[styles.voiceButtonText, { color: "#6366F1" }]}>
+                    {isPlaying ? "Playing..." : "Play Recording"}
+                  </Text>
+                </TouchableOpacity>
+                <Text style={styles.helperText}>Voice note recorded!</Text>
+              </>
+            )}
+            <View style={styles.section}>
+              {/* Add a text box here to caputre the recording description */}
+              <Text style={styles.sectionTitle}>Description</Text>
+              <TextInput
+                style={[styles.textInput, { minHeight: 100 }]}
+                value={description}
+                onChangeText={setDescription}
+                placeholder="Description"
+                returnKeyType="done"
+                multiline
+                textAlignVertical="top"
+              />
+            </View>
           </View>
         );
       case "image":
