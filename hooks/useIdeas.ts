@@ -2,8 +2,7 @@ import { useState, useEffect } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Idea, IdeaFilter } from "@/types/idea";
 import { v4 as uuidv4 } from "uuid";
-
-export const STORAGE_KEY = "braindrop_ideas";
+import { STORAGE_KEY } from "@/app/(tabs)/constants";
 
 export function useIdeas() {
   const [ideas, setIdeas] = useState<Idea[]>([]);
@@ -23,6 +22,25 @@ export function useIdeas() {
           updatedAt: new Date(idea.updatedAt),
         }));
         setIdeas(parsedIdeas);
+      }
+    } catch (error) {
+      console.error("Error loading ideas:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getIdeas = async () => {
+    setLoading(true);
+    try {
+      const stored = await AsyncStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        const parsedIdeas = JSON.parse(stored).map((idea: any) => ({
+          ...idea,
+          createdAt: new Date(idea.createdAt),
+          updatedAt: new Date(idea.updatedAt),
+        }));
+        return parsedIdeas;
       }
     } catch (error) {
       console.error("Error loading ideas:", error);
@@ -105,6 +123,8 @@ export function useIdeas() {
     toggleFavorite,
     filterIdeas,
     getAllTags,
+    setIdeas,
+    getIdeas,
     refreshIdeas: loadIdeas,
   };
 }

@@ -15,53 +15,136 @@ import { IdeaCard } from "@/components/IdeaCard";
 import { CaptureModal } from "@/components/CaptureModal";
 import { Idea, IdeaFilter } from "@/types/idea";
 import { useFocusEffect } from "@react-navigation/native";
+import { AdvancedFilterModal } from "@/components/FilterModal";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { STORAGE_KEY } from "./constants";
 
 export default function IdeasScreen() {
   const {
-    ideas,
-    loading,
     updateIdea,
     deleteIdea,
     toggleFavorite,
     refreshIdeas,
+    filterIdeas,
+    getIdeas,
   } = useIdeas();
+  const [ideas, setIdeas] = useState<Idea[]>([]);
+  const [filteredIdeas, setFilteredIdeas] = useState<Idea[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedFilter, setSelectedFilter] = useState<IdeaFilter>({});
   const [editingIdea, setEditingIdea] = useState<Idea | undefined>();
   const [showEditModal, setShowEditModal] = useState(false);
+  const [sortAsc, setSortAsc] = useState(false);
+  const [showAdvancedFilterModal, setShowAdvancedFilterModal] = useState(false);
+  const [advancedFilterFields, setAdvancedFilterFields] = useState({
+    date: null,
+    type: "",
+    title: "",
+    description: "",
+    tags: [],
+  });
 
-  useFocusEffect(
-    React.useCallback(() => {
-      refreshIdeas();
-    }, [])
-  );
+  const loadIdeas = async () => {
+    try {
+      const stored = await AsyncStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        const parsedIdeas = JSON.parse(stored).map((idea: any) => ({
+          ...idea,
+          createdAt: new Date(idea.createdAt),
+          updatedAt: new Date(idea.updatedAt),
+        }));
+        setIdeas(parsedIdeas);
+        setFilteredIdeas(parsedIdeas);
+      }
+    } catch (error) {
+      console.error("Error loading ideas:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  const filteredIdeas = useMemo(() => {
-    let filtered = ideas;
+  const handleSearchTextChange = (text: string) => {
+    setSearchQuery(text);
+    if (text.trim()) {
+      let filteredIdeas: Idea[] = [];
+      if (selectedFilter.type) {
+        filteredIdeas = ideas.filter(
+          (idea: Idea) => idea.type === selectedFilter.type
+        );
+      }
+      if (selectedFilter.favorites) {
+        filteredIdeas = ideas.filter((idea: Idea) => idea.isFavorite);
+      }
 
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(
+      const query = text.toLowerCase();
+      const newIdeas = ideas.filter(
         (idea) =>
           idea.title.toLowerCase().includes(query) ||
           idea.content.toLowerCase().includes(query) ||
           idea.tags.some((tag) => tag.toLowerCase().includes(query))
       );
+      setFilteredIdeas(newIdeas);
+      return;
     }
+    // If search query is empty, refresh ideas
+    setFilteredIdeas(ideas);
+  };
 
-    if (selectedFilter.type) {
-      filtered = filtered.filter((idea) => idea.type === selectedFilter.type);
+  useFocusEffect(
+    React.useCallback(() => {
+      loadIdeas();
+    }, [])
+  );
+
+  const filterByType = async (
+    type: "text" | "voice" | "image" | "all" | "favorites"
+  ) => {
+    const allIdeas = await getIdeas();
+    if (type === "all") {
+      setSelectedFilter({});
+      setIdeas(allIdeas);
     }
-
-    if (selectedFilter.favorites) {
-      filtered = filtered.filter((idea) => idea.isFavorite);
+    if (type === "favorites") {
+      const favoriteIdeas = allIdeas.filter((idea: Idea) => idea.isFavorite);
+      setSelectedFilter({ favorites: true });
+      setIdeas(favoriteIdeas);
+      return;
     }
+    if (type !== "all") {
+      const filteredIdeas = allIdeas.filter((idea: Idea) => idea.type === type);
+      setSelectedFilter({ type });
+      setIdeas(filteredIdeas);
+    }
+  };
 
-    return filtered.sort(
-      (a, b) =>
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    );
-  }, [ideas, searchQuery, selectedFilter]);
+  // const filteredIdeas = useMemo(() => {
+  //   let filtered = ideas;
+
+  //   if (searchQuery.trim()) {
+  //     const query = searchQuery.toLowerCase();
+  //     filtered = filtered.filter(
+  //       (idea) =>
+  //         idea.title.toLowerCase().includes(query) ||
+  //         idea.content.toLowerCase().includes(query) ||
+  //         idea.tags.some((tag) => tag.toLowerCase().includes(query))
+  //     );
+  //   }
+
+  //   if (selectedFilter.type) {
+  //     filtered = filtered.filter((idea) => idea.type === selectedFilter.type);
+  //   }
+
+  //   if (selectedFilter.favorites) {
+  //     filtered = filtered.filter((idea) => idea.isFavorite);
+  //   }
+
+  //   return filtered.sort((a, b) => {
+  //     const diff =
+  //       new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+  //     return sortAsc ? -diff : diff;
+  //   });
+  // }, [ideas, searchQuery, selectedFilter, sortAsc]);
 
   const handleEditIdea = (idea: Idea) => {
     setEditingIdea(idea);
@@ -117,10 +200,33 @@ export default function IdeasScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Your Ideas</Text>
-        <Text style={styles.subtitle}>
-          {filteredIdeas.length} of {ideas.length} ideas
-        </Text>
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
+        >
+          <View>
+            <Text style={styles.title}>Your Ideas</Text>
+            {/* <Text style={styles.subtitle}>
+              {filteredIdeas.length} of {ideas.length} ideas
+            </Text> */}
+          </View>
+          <TouchableOpacity
+            onPress={() => setSortAsc((prev) => !prev)}
+            style={styles.sortButton}
+          >
+            <Feather
+              name={sortAsc ? "arrow-up" : "arrow-down"}
+              size={18}
+              color="#3B82F6"
+            />
+            <Text style={styles.sortButtonText}>
+              {sortAsc ? "Oldest" : "Newest"}
+            </Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       <View style={styles.searchContainer}>
@@ -130,7 +236,10 @@ export default function IdeasScreen() {
             style={styles.searchInput}
             placeholder="Search ideas, tags, or content..."
             value={searchQuery}
-            onChangeText={setSearchQuery}
+            // onChangeText={(val) => {
+            //   filterIdeas({ searchQuery: val });
+            // }}
+            onChangeText={handleSearchTextChange}
             returnKeyType="search"
           />
         </View>
@@ -158,15 +267,7 @@ export default function IdeasScreen() {
                   isActive && styles.filterButtonActive,
                 ]}
                 onPress={() => {
-                  if (item.key === "all") {
-                    setSelectedFilter({});
-                  } else if (item.key === "favorites") {
-                    setSelectedFilter({ favorites: !selectedFilter.favorites });
-                  } else {
-                    setSelectedFilter({
-                      type: item.key as "text" | "voice" | "image",
-                    });
-                  }
+                  filterByType(item.key as "text" | "voice" | "image" | "all");
                 }}
               >
                 {item.icon && (
@@ -198,7 +299,7 @@ export default function IdeasScreen() {
         )}
       </View>
 
-      {filteredIdeas.length === 0 ? (
+      {ideas.length === 0 ? (
         <View style={styles.emptyContainer}>
           <Text style={styles.emptyTitle}>
             {searchQuery || getActiveFiltersCount() > 0
@@ -238,6 +339,20 @@ export default function IdeasScreen() {
           editingIdea={editingIdea}
         />
       )}
+      <TouchableOpacity
+        style={styles.advancedFilterButton}
+        onPress={() => setShowAdvancedFilterModal(true)}
+      >
+        <Feather name="filter" size={28} color="#fff" />
+      </TouchableOpacity>
+      {showAdvancedFilterModal && (
+        <AdvancedFilterModal
+          showFilterModal={showAdvancedFilterModal}
+          setShowFilterModal={setShowAdvancedFilterModal}
+          filterFields={advancedFilterFields}
+          setFilterFields={setAdvancedFilterFields}
+        />
+      )}
     </SafeAreaView>
   );
 }
@@ -250,6 +365,20 @@ const styles = StyleSheet.create({
   header: {
     padding: 20,
     paddingBottom: 16,
+  },
+  sortButton: {
+    marginLeft: 12,
+    backgroundColor: "#E5E7EB",
+    borderRadius: 20,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  sortButtonText: {
+    marginLeft: 6,
+    color: "#3B82F6",
+    fontWeight: "500",
   },
   title: {
     fontSize: 28,
@@ -354,5 +483,21 @@ const styles = StyleSheet.create({
   loadingText: {
     fontSize: 16,
     color: "#6B7280",
+  },
+  advancedFilterButton: {
+    position: "absolute",
+    bottom: 32,
+    right: 32,
+    backgroundColor: "#3B82F6",
+    borderRadius: 32,
+    width: 56,
+    height: 56,
+    justifyContent: "center",
+    alignItems: "center",
+    elevation: 4,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
   },
 });

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import {
   View,
   Text,
@@ -63,6 +63,7 @@ export function CaptureModal({
   const [isRecording, setIsRecording] = useState(false);
   const [sound, setSound] = useState<Audio.Sound | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const tagInputRef = useRef<TextInput>(null);
 
   const resetForm = () => {
     if (!editingIdea) {
@@ -133,6 +134,10 @@ export function CaptureModal({
     if (trimmedTag && !tags.includes(trimmedTag)) {
       setTags([...tags, trimmedTag]);
       setNewTag("");
+      // Refocus the input for quick entry
+      setTimeout(() => {
+        tagInputRef.current?.focus();
+      }, 100);
     }
   };
 
@@ -445,6 +450,7 @@ export function CaptureModal({
               <View style={styles.tagInput}>
                 <FontAwesome name="tags" size={20} color="#6B7280" />
                 <TextInput
+                  ref={tagInputRef}
                   style={styles.tagTextInput}
                   value={newTag}
                   onChangeText={setNewTag}
